@@ -20,8 +20,10 @@ func (p *Periodic) Repeat(t time.Duration, o Operator, data ...interface{}) (str
 	defer p.lock.Unlock()
 
 	if len(p.tasks) < p.capacity {
-
 		retVal := make(chan bool)
+		id := uuid.New().String()
+		p.tasks[id] = retVal
+
 		go func() {
 			ticker := time.NewTicker(t)
 			for {
@@ -34,9 +36,6 @@ func (p *Periodic) Repeat(t time.Duration, o Operator, data ...interface{}) (str
 				}
 			}
 		}()
-		id := uuid.New().String()
-		p.tasks[id] = retVal
-
 		return id, nil
 	}
 	return "", errors.New("Max capacity reached")
@@ -47,8 +46,10 @@ func (p *Periodic) Once(t time.Duration, o Operator, data ...interface{}) (strin
 	defer p.lock.Unlock()
 
 	if len(p.tasks) < p.capacity {
-
 		retVal := make(chan bool)
+		id := uuid.New().String()
+		p.tasks[id] = retVal
+
 		go func() {
 			timer := time.NewTimer(t)
 			for {
@@ -56,17 +57,14 @@ func (p *Periodic) Once(t time.Duration, o Operator, data ...interface{}) (strin
 				case <-timer.C:
 					o(data)
 				case <-retVal:
+					delete(p.tasks, id)
 					timer.Stop()
 					return
 				}
 			}
 		}()
-		id := uuid.New().String()
-		p.tasks[id] = retVal
-
 		return id, nil
 	}
-
 	return "", errors.New("Max capacity reached")
 }
 
