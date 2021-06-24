@@ -15,9 +15,9 @@ func main() {
 
 	timer1 := time.NewTimer(20 * time.Second)
 
-	p.Repeat(5*time.Second, func(d ...interface{}, 1, 2) {
+	p.Repeat(5*time.Second, func(d ...interface{}) {
 		fmt.Println("Repeat 5 ", d)
-	})
+	}, 1, 2)
 
 	p.Repeat(10*time.Second, func(d ...interface{}) {
 		fmt.Println("Repeat 10")
